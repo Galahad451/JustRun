@@ -20,6 +20,10 @@ local uiGroup
 local function gotoMenu()
 	composer.gotoScene("menu", {time = 800, effect = "crossFade"} )
 end
+
+local function parallax()
+	background.parallax()
+end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
@@ -45,7 +49,7 @@ function scene:create( event )
 	background.spawn(backGroup)
 
 	hero.spawn(mainGroup)
-	hero.idle()
+	hero.walk()
 
 	local square = display.newRect(backuiGroup, 0,0,display.contentWidth, display.contentHeight)
 	square:setFillColor(0,0,0,0.5)
@@ -62,6 +66,7 @@ function scene:create( event )
 	returnButton.y = 50
 
 	returnButton:addEventListener("tap", gotoMenu)
+	Runtime:addEventListener("enterFrame", parallax )
 
 end
 
@@ -103,6 +108,7 @@ function scene:destroy( event )
 
 	local sceneGroup = self.view
 	-- Code here runs prior to the removal of scene's view
+	Runtime:removeEventListener("enterFrame", parallax )
 
 end
 

@@ -9,6 +9,7 @@ application =
       	height = aspectRatio < 1.5 and 1200 or math.floor( 800 * aspectRatio ),
       	scale = "zoomEven",
       	fps = 60,
-      	yAlign = "bottom"
+      	yAlign = "bottom",
+      	audioPlayFrequency = 22050
     },
 }

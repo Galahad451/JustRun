@@ -16,14 +16,14 @@ local sequenceData = {
 	{name = "sky", frames = {6}}
 }
 
-local sky
-local mountains
-local cloudFar
-local cloudMiddle
-local cloudClose
-local gnd
-local gnd2
-local floor
+local sky = display.newSprite( myImageSheet, sequenceData )
+local mountains = display.newSprite( myImageSheet, sequenceData )
+local cloudFar = display.newSprite( myImageSheet, sequenceData )
+local cloudMiddle = display.newSprite( myImageSheet, sequenceData )
+local cloudClose = display.newSprite( myImageSheet, sequenceData )
+local floor = display.newSprite( myImageSheet, sequenceData )
+local gnd = display.newSprite( myImageSheet, sequenceData )
+local gnd2 = display.newSprite( myImageSheet, sequenceData )
 
 local gndFlag = false
 
@@ -31,55 +31,54 @@ local gndFlag = false
 local bngCollisionFilter = { categoryBits=8, maskBits=16 }
 local floorCollisionFilter = {categoryBits=4, maskBits=3}
 
-local function spawn(grupo)
+local function spawn()
 
-	sky = display.newSprite( grupo, myImageSheet, sequenceData )
 	sky:setSequence( "sky" )
 	sky.x = xyManager.centreX(0)
 	sky.y = xyManager.centreY(0)
+	sky.myName = "sky"
 	table.insert(background, sky)
 
-	mountains = display.newSprite( grupo, myImageSheet, sequenceData )
 	mountains:setSequence( "mountains" )
 	mountains.x = xyManager.centreX(200)
 	mountains.y = xyManager.centreY(300)
+	mountains.myName = "mountains"
 	table.insert(background, mountains)
 
-	cloudFar = display.newSprite( grupo, myImageSheet, sequenceData )
 	cloudFar:setSequence( "cloudFar" )
 	cloudFar.x = xyManager.centreX(400)
 	cloudFar.y = xyManager.centreY(50)
+	cloudFar.myName = "cloudFar"
 	table.insert(background, cloudFar)
 
-	cloudMiddle = display.newSprite( grupo, myImageSheet, sequenceData )
 	cloudMiddle:setSequence( "cloudMiddle" )
 	cloudMiddle.x = xyManager.centreX(-100)
 	cloudMiddle.y = xyManager.centreY(100)
+	cloudMiddle.myName = "cloudMiddle"
 	table.insert(background, cloudMiddle)
 
-	cloudClose = display.newSprite( grupo, myImageSheet, sequenceData )
 	cloudClose:setSequence( "cloudClose" )
 	cloudClose.x = xyManager.centreX(-400)
 	cloudClose.y = xyManager.centreY(0)
+	cloudClose.myName = "cloudClose"
 	table.insert(background, cloudClose)
 
-	floor = display.newSprite( grupo, myImageSheet, sequenceData )
 	floor:setSequence( "gnd" )
 	floor.x = xyManager.centreX(0)
 	floor.y = xyManager.centreY(445)
 	floor.myName = "floor"
 	table.insert(background, floor)
 
-	gnd = display.newSprite( grupo, myImageSheet, sequenceData )
 	gnd:setSequence( "gnd" )
 	gnd.x = xyManager.centreX(0)
 	gnd.y = xyManager.centreY(420)
+	gnd.myName = "gnd"
 	table.insert(background, gnd)
 
-	gnd2 = display.newSprite( grupo, myImageSheet, sequenceData )
 	gnd2:setSequence( "gnd" )
 	gnd2.x = xyManager.centreX(9000)
 	gnd2.y = xyManager.centreY(420)
+	gnd2.myName = "gnd2"
 	table.insert(background, gnd2)
 	
 end
@@ -115,13 +114,24 @@ local function delete()
 	end
 end
 
-local function startVel()
-	mountains:setLinearVelocity( -10, 0 )
-	cloudClose:setLinearVelocity( -100, 0 )
-	cloudMiddle:setLinearVelocity( -30, 0 )
-	cloudFar:setLinearVelocity( -15, 0 )
-	gnd:setLinearVelocity( -800, 0 )
-	gnd2:setLinearVelocity( -800, 0 )
+local function startVel(level)
+	local velLevel = level*0.2 + 1
+	mountains:setLinearVelocity( -10*velLevel, 0 )
+	cloudClose:setLinearVelocity( -100*velLevel, 0 )
+	cloudMiddle:setLinearVelocity( -30*velLevel, 0 )
+	cloudFar:setLinearVelocity( -15*velLevel, 0 )
+	gnd:setLinearVelocity( -500*velLevel, 0 )
+	gnd2:setLinearVelocity( -500*velLevel, 0 )
+end
+
+local function setVel(level)
+	local velLevel = level*0.2 + 1
+	mountains:setLinearVelocity( -10*velLevel, 0 )
+	cloudClose:setLinearVelocity( -100*velLevel, 0 )
+	cloudMiddle:setLinearVelocity( -30*velLevel, 0 )
+	cloudFar:setLinearVelocity( -15*velLevel, 0 )
+	gnd:setLinearVelocity( -500*velLevel, 0 )
+	gnd2:setLinearVelocity( -500*velLevel, 0 )
 end
 
 local function pauseVel()
@@ -156,6 +166,18 @@ local function parallax()
 	end
 end
 
+local function toBack()
+	gnd2:toBack()
+	gnd:toBack()
+	cloudClose:toBack()
+	cloudMiddle:toBack()
+	mountains:toBack()
+	cloudFar:toBack()
+	sky:toBack()
+	floor:toBack()
+end
+
+
 
 background.start = start
 background.spawn = spawn
@@ -163,6 +185,8 @@ background.parallax = parallax
 background.startVel = startVel
 background.pauseVel = pauseVel
 background.delete = delete
+background.toBack = toBack
+background.setVel = setVel
 
 
 return background

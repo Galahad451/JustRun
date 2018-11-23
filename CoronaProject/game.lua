@@ -22,17 +22,35 @@ local scoreText
 
 local puntos = {}
 
+local level = 1
+
+local yIni = 0
+local yFini = 0
+
 -- -----------------------------------------------------------------------------------
 -- Code outside of the scene event functions below will only be executed ONCE unless
 -- the scene is removed entirely (not recycled) via "composer.removeScene()"
 -- -----------------------------------------------------------------------------------
 
+--Sonidos
+--FX
+local death = audio.loadSound( "music/deathMario.wav", {channel = 2, loops = 1} )
+local attack = audio.loadSound( "music/attack.wav" ,{channel = 2, loops = 1} )
+local step = audio.loadSound( "music/step.wav" ,{channel = 2, loops = 1} )
+
+--Music
+local bngMusic = audio.loadStream( "music/Armadillo.wav", {channel = 2, loops = -1} )
+
 --Variables
 local jumpFlag = false
+local downFlag = true
 local swordFlag = false
 local heroLive = true
 local score
 local swordTimer
+local scoreTimer
+
+local levelBool = false
 
 
 physics.start( true )
@@ -45,7 +63,14 @@ local function parallax()
 end
 
 local function loop()
-	patrones.frames(mainGroup)
+	if(levelBool == false) then
+		patrones.frames(mainGroup, level)
+		background.setVel(level)
+	end
+end
+
+local function setBoolLevel()
+	levelBool = false
 end
 
 local function setScore()
@@ -54,23 +79,18 @@ local function setScore()
 end
 
 local function endGame()
-	--[[local square = display.newRect(0,0,display.contentWidth, display.contentHeight)
-	square:setFillColor(0,0,0,0.5)
-	square.x = xyManager.centreX(0)
-	square.y = xyManager.centreY(0)
 	patrones.delete()
 	hero.delete()
-	display.newText( "GAMEOVER", xyManager.centreX(0), xyManager.centreY(0), "Orientalismus.otf", 70, WHITE )
-	display.newText( "Score:  " .. score, xyManager.centreX(0), xyManager.centreY(100), "Orientalismus.otf", 60, WHITE )]]
-	patrones.delete()
-	hero.delete()
-	background.delete()
-	if (puntos.variable.highScore ~= nil and puntos.variable.highScore < score) then
-		print("SCORE " .. score)
-		puntos.variable.highScore = score
-		print("Nuevo HIGHSCORE " .. gameData.variable.highScore)
+	if (puntos.highScore < score) then
+		puntos.highScore = score
+		gameData.persistent.highScore = score
 	end
 	loadsave.saveTable(puntos, "gameData.json", system.DocumentsDirectory)
+	level = 1
+end
+
+local function gotoMenu()
+	composer.gotoScene("menu", {time = 800, effect = "crossFade"})
 end
 
 local function onCollision(event)
@@ -78,7 +98,8 @@ local function onCollision(event)
 	local obj2 = event.object2
 
 	--Colisión entre espada y enemigo
-	if((obj1.myName == "sword" and obj2.myName == "enemyRed") or (obj1.myName == "enemyRed" and obj2.myName == "sword")) then
+	if(obj1.myName == "hero" and obj2.myName == "enemyRed" and swordFlag == true) or
+		(obj2.myName == "hero" and obj1.myName == "enemyRed" and swordFlag == true) then
 		if(obj2.myName == "enemyRed") then
 			
 			display.remove(obj2)
@@ -93,7 +114,9 @@ local function onCollision(event)
 		end
 		setScore()
 	end
-	if((obj1.myName == "sword" and obj2.myName == "greenDragon") or (obj1.myName == "greenDragon" and obj2.myName == "sword")) then
+	if (obj1.myName == "hero" and obj2.myName == "greenDragon" and swordFlag == true) or
+		(obj2.myName == "hero" and obj1.myName == "greenDragon" and swordFlag == true)
+	then
 		if(obj2.myName == "greenDragon") then
 			
 			display.remove(obj2)
@@ -110,29 +133,35 @@ local function onCollision(event)
 	end
 
 	--Colision de heroe con ememigo para el heroe MUERA
-	if((obj1.myName == "enemyRed" and obj2.myName == "hero")
-		or (obj1.myName == "hero" and obj2.myName == "enemyRed")
-		or (obj1.myName == "enemyYellow" and obj2.myName == "hero")
-		or (obj1.myName == "hero" and obj2.myName == "enemyYellow")
-		or (obj1.myName == "greenDragon" and obj2.myName == "hero")
-		or (obj1.myName == "hero" and obj2.myName == "greenDragon")
-		or (obj1.myName == "redDragon" and obj2.myName == "hero")
-		or (obj1.myName == "hero" and obj2.myName == "redDragon")) then
+	if((obj1.myName == "enemyRed" and obj2.myName == "hero" and heroLive == true and swordFlag == false)
+		or (obj1.myName == "hero" and obj2.myName == "enemyRed"  and heroLive == true and swordFlag == false)
+		or (obj1.myName == "enemyYellow" and obj2.myName == "hero"  and heroLive == true)
+		or (obj1.myName == "hero" and obj2.myName == "enemyYellow"  and heroLive == true)
+		or (obj1.myName == "greenDragon" and obj2.myName == "hero"  and heroLive == true and swordFlag == false)
+		or (obj1.myName == "hero" and obj2.myName == "greenDragon"  and heroLive == true and swordFlag == false)
+		or (obj1.myName == "redDragon" and obj2.myName == "hero"  and heroLive == true)
+		or (obj1.myName == "hero" and obj2.myName == "redDragon"  and heroLive == true)) then
+		hero.die()
 		heroLive = false
-		composer.gotoScene("menu", {time = 800, effect = "crossFade"})
+		timer.cancel(scoreTimer)
+		audio.pause( bngMusic )
+		audio.play( death )
+		timer.performWithDelay(1000, gotoMenu, 1)
+		--composer.gotoScene("menu", {time = 800, effect = "crossFade"})
 	end
 
 
 
 	--Colision entre el suelo y el heroe para que cambie de animación
 	if((obj1.myName == "hero" and obj2.myName == "floor") or 
-		(obj1.myName == "floor" and obj2.myName == "hero")) then
+		(obj1.myName == "floor" and obj2.myName == "hero")
+		and heroLive == true ) then
 		if ( event.phase == "began" ) then
 			jumpFlag = false
 			hero.walk()
 
 		end
-		if (event.phase == "ended") then
+		if (event.phase == "ended" and heroLive == true) then
 			jumpFlag = true
 
 		end
@@ -140,9 +169,100 @@ local function onCollision(event)
 end
 
 local function removeSword()
-	sword.remove()
 	swordFlag = false
+	if jumpFlag == true then
+		hero.setSeq(5)
+	else
+		hero.setSeq(1)
+	end
 end
+
+
+-- Called when a key event has been received
+
+local lastEvent = {}
+local function onKeyEvent( event )
+	local phase = event.phase
+	local name = event.keyName
+	if ( phase == lastEvent.phase ) and ( name == lastEvent.keyName ) then return false end  -- Filter repeating keys
+	if phase == "down" then
+		if "up" == name and jumpFlag == true and heroLive == true then
+			hero.down()
+			hero.cancelJump()
+		end
+		if "up" == name and jumpFlag == false and heroLive == true  then
+			hero.setSeq(2)
+			hero.jump()
+			jumpFlag = true
+		end
+		if "right" == name and jumpFlag == false and heroLive == true  then
+			patrones.spawn(mainGroup, 1)
+		end
+		if "left" == name and jumpFlag == false and heroLive == true  then
+			patrones.spawn(mainGroup, 2)
+		end
+		if "space" == name and swordFlag == false and heroLive == true  then
+			swordFlag = true
+			swordTimer = timer.performWithDelay( 400, removeSword, 1)
+			audio.play( attack )
+			if jumpFlag == true then
+				hero.atk(2)
+			else
+				hero.atk(1)
+			end
+		end
+		if "enter" == name then
+			composer.gotoScene("menu", {time = 800, effect = "crossFade"})
+		end
+	elseif phase == "up" and jumpFlag == false then
+		--hero.walk()
+	end
+	lastEvent = event
+ 
+    -- IMPORTANT! Return false to indicate that this app is NOT overriding the received key
+    -- This lets the operating system execute its default handling of the key
+end
+
+local function jumpListener( event )
+	if(event.phase == "began") then
+		yIni = event.y
+	elseif(event.phase == "moved") then
+		yFini = event.y
+		if(yFini < yIni-100 and jumpFlag == false and heroLive == true) then
+			hero.jump()
+			hero.setSeq(2)
+			jumpFlag = true
+			downFlag = false
+		end
+		if(yFini > yIni + 100  and jumpFlag == true and heroLive == true and downFlag == false) then
+			hero.down()
+			hero.cancelJump()
+			downFlag = true
+		end
+	end
+end
+
+local function attackListener( event )
+	if event.x > display.contentWidth/2 and swordFlag == false and heroLive == true  then
+		audio.play( attack )
+		swordFlag = true
+		swordTimer = timer.performWithDelay( 400, removeSword, 1)
+		if jumpFlag == true then
+			hero.atk(2)
+		else
+			hero.atk(1)
+		end
+	end
+end
+
+local function levelUp()
+	level = level + 1
+	levelBool = true
+	timer.performWithDelay(3000, setBoolLevel, 1)
+end
+
+local function setpSound()
+	audio.play( step )
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -151,8 +271,10 @@ end
 -- create()
 function scene:create( event )
 
-	score = 0
+	audio.play( bngMusic )
 
+	score = 0
+	level = 1
 	local sceneGroup = self.view
 	-- Code here runs when the scene is first created but has not yet appeared on screen
 
@@ -168,70 +290,35 @@ function scene:create( event )
 	hero.spawn(mainGroup)
 	hero.start()
 	hero.walk()
-	patrones.spawnFrame(mainGroup)
+	patrones.spawnFrame(mainGroup, level)
 
 	sword.spawn(mainGroup)
 	sword.remove()	
 
+	background.toBack()
+	background.startVel(level)
+
 	puntos = loadsave.loadTable("gameData.json", system.DocumentsDirectory)
-	print("Puntooooooos")
-	print(puntos.variable.score)
-	score = puntos.variable.score
 
 	scoreText = display.newText( uiGroup, "Score: " .. score, xyManager.centreX(0), xyManager.centreY(-350), "Orientalismus.otf", 36 )
 	scoreText:setFillColor(.28, .08, .13)
-
-	-- Called when a key event has been received
-	local lastEvent = {}
-	local function onKeyEvent( event )
-		local phase = event.phase
-		local name = event.keyName
-		if ( phase == lastEvent.phase ) and ( name == lastEvent.keyName ) then return false end  -- Filter repeating keys
-		if phase == "down" then
-			if "up" == name and jumpFlag == true and heroLive == true then
-				hero.down()
-				hero.cancelJump()
-				sword.down()
-				sword.cancelJump()
-			end
-			if "up" == name and jumpFlag == false and heroLive == true  then
-				hero.jump()
-				sword.jump()
-				jumpFlag = true
-			end
-			if "right" == name and jumpFlag == false and heroLive == true  then
-				patrones.spawn(mainGroup, 1)
-			end
-			if "left" == name and jumpFlag == false and heroLive == true  then
-				patrones.spawn(mainGroup, 2)
-			end
-			if "space" == name and swordFlag == false and heroLive == true  then
-				swordFlag = true
-				sword.start()
-				swordTimer = timer.performWithDelay( 500, removeSword, 1)
-			end
-			if "enter" == name then
-				composer.gotoScene("menu", {time = 800, effect = "crossFade"})
-			end
-		elseif phase == "up" and jumpFlag == false then
-			--hero.walk()
-		end
-		lastEvent = event
-	 
-	    -- IMPORTANT! Return false to indicate that this app is NOT overriding the received key
-	    -- This lets the operating system execute its default handling of the key
-	end
 	
 
 	-- Adding physics to the bodies
 	--physics.addBody( hero:sprite, { density = 1.0, friction = 0.0, bounce = 0.5 } )
 	 
 	-- Add the key event listener
-	Runtime:addEventListener( "key", onKeyEvent )
 	Runtime:addEventListener( "enterFrame", loop )
 	Runtime:addEventListener( "collision", onCollision )
+	Runtime:addEventListener( "enterFrame", parallax )
+	Runtime:addEventListener( "touch", jumpListener )
+	Runtime:addEventListener( "tap", attackListener )
+	Runtime:addEventListener( "key", onKeyEvent )
 	
-	timer.performWithDelay( 1000, setScore, 0 )
+	
+	scoreTimer = timer.performWithDelay( 1000, setScore, 0 )
+	timer.performWithDelay( 15000, levelUp, 0 )
+	setpSound = timer.performWithDelay(10, playStep, 0)
 end
 
 
@@ -245,11 +332,6 @@ function scene:show( event )
 		-- Code here runs when the scene is still off screen (but is about to come on screen)
 	elseif ( phase == "did" ) then
 		-- Code here runs when the scene is entirely on screen
-		background.spawn(backGroup)
-		background.start()
-		background.startVel()
-		Runtime:addEventListener( "enterFrame", parallax )
-
 	end
 end
 
@@ -262,18 +344,14 @@ function scene:hide( event )
 
 	if ( phase == "will" ) then
 		-- Code here runs when the scene is on screen (but is about to go off screen)
+		physics.pause()
 
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
 		sword.remove()
-		physics.pause()
-		print("entro al final")
 		endGame()
-		composer.removeScene( "game" )
-		Runtime:removeEventListener( "key", onKeyEvent )
-		Runtime:removeEventListener( "enterFrame", parallax )
-		Runtime:removeEventListener( "enterFrame", loop )
-		Runtime:removeEventListener( "collision", onCollision )
+
+		composer.removeScene("game")
 
 
 	end
@@ -285,6 +363,12 @@ function scene:destroy( event )
 
 	local sceneGroup = self.view
 	-- Code here runs prior to the removal of scene's view
+	Runtime:removeEventListener( "enterFrame", parallax )
+	Runtime:removeEventListener( "enterFrame", loop )
+	Runtime:removeEventListener( "collision", onCollision )
+	Runtime:removeEventListener( "touch", jumpListener )
+	Runtime:removeEventListener( "tap", attackListener )
+	Runtime:removeEventListener( "key", onKeyEvent )
 
 end
 

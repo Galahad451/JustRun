@@ -11,28 +11,26 @@ local frames = {}
 
 local bngCollisionFilter = { categoryBits=8, maskBits=16 }
 
-local vel = -500
-
 local random = 1
 
-local function createPattern(group, enemies)
+local function createPattern(group, enemies, velLevel)
 	for i=1,table.maxn(enemies) do
 		if(enemies[i] == 1) then
-			enemy.create(group, i, 1)
+			enemy.create(group, i, 1, velLevel)
 		elseif (enemies[i] == 2) then
-			enemy.create(group, i, 2)
+			enemy.create(group, i, 2, velLevel)
 		elseif(enemies[i] == 3) then
-			enemy.create(group, i, 3)
+			enemy.create(group, i, 3, velLevel)
 		elseif(enemies[i] == 4) then
-			enemy.create(group, i, 4)
+			enemy.create(group, i, 4, velLevel)
 		end
 	end
 end
 
-local function spawn(group)
+local function spawn(group, velLevel)
 	random = math.random(1, table.maxn(pattern[1]))
 	enemies = pattern[1][random]
-	createPattern(group, enemies)
+	createPattern(group, enemies, velLevel)
 	for i = #enemy, 1, -1 do
         local thisEnemy = enemy[i]
  
@@ -48,7 +46,8 @@ local function spawn(group)
 
 end
 
-local function spawnFrame(group)
+local function spawnFrame(group, level)
+	local velLevel = level*0.2 + 1
 	local newFrame = display.newRect(0, 0, 1200, display.contentHeight )
 	table.insert(frames, newFrame)
 	newFrame.x = display.contentWidth + newFrame.width/2
@@ -56,9 +55,10 @@ local function spawnFrame(group)
 	newFrame.myName = "frame"
 	newFrame:setFillColor(0,0,0,0)
 	physics.addBody( newFrame, "dynamic", {filter = bngCollisionFilter} )
-	newFrame:setLinearVelocity( vel, 0 )
+	print(velLevel)
+	newFrame:setLinearVelocity( -500*velLevel, 0 )
 	newFrame.gravityScale = 0
-	spawn(group)
+	spawn(group, velLevel)
 end
 
 local function delete()
@@ -74,11 +74,11 @@ local function delete()
 	end
 end
 
-local function frameFunction(group)
+local function frameFunction(group, velLevel)
 	for i = #frames, 1, -1 do
 		local thisFrame = frames[i]
 		if(thisFrame.x + thisFrame.width/2 <= display.contentWidth - 100) then
-			spawnFrame(group)
+			spawnFrame(group, velLevel)
 			display.remove ( thisFrame )
 			table.remove( frames, i )
 		end

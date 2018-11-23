@@ -54,8 +54,8 @@ settings =
     {
         -- Exclude unnecessary files for each platform
         all = { "Icon.png", "Icon-*dpi.png", "Images.xcassets", "*secret.txt" },
-        android = { "LaunchScreen.storyboardc", "music/*.aac" },
-        ios = { "music/*.ogg" },
+       -- android = { "LaunchScreen.storyboardc", "music/*.aac" },
+        --ios = { "music/*.ogg" },
 
         -- Exclude unnecessary assets from macOS desktop apps
         macos = { "Icon*.ico" },

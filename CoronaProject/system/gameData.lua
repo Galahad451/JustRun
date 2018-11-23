@@ -8,7 +8,7 @@ gameData.persistent = {
 	score = 0
 }
 
-gameData.variable = {
+gameData.persistentDefault = {
 	highScore = 0,
 	score = 0
 }

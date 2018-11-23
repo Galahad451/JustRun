@@ -21,6 +21,10 @@ local heroWidth = 50
 local function gotoMenu()
 	composer.gotoScene("menu", {time = 800, effect = "crossFade"} )
 end
+
+local function parallax()
+	background.parallax()
+end
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
 -- -----------------------------------------------------------------------------------
