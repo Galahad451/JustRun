@@ -1,6 +1,6 @@
 
 local composer = require( "composer" )
-local xyManager = require( "xyManager" )
+local xyManager = require( "system.xyManager" )
 
 local scene = composer.newScene()
 

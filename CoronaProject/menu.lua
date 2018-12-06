@@ -1,11 +1,15 @@
-
 local composer = require( "composer" )
-local xyManager = require( "xyManager" )
+local uiManager = require("system.UIManager")
+local xyManager = require("system.xyManager")
 local hero = require("game.hero")
 local background = require("game.background")
 local gameData = require("system.gameData")
 local loadsave = require("system.loadsave")
 local physics = require("physics")
+local popUps = require("game.popUps")
+
+
+print( "Llego hasta aquí" )
 
 local scene = composer.newScene()
 
@@ -19,10 +23,10 @@ local play
 --Start physics
 physics.start( true )
 physics.setGravity( 0, 9.8 )
+physics.setDrawMode( "normal" )
 
 local function gotoGame()
-	transition.to(play, {size=play.size*1.5, time= 100, transition=easing.linear})
-	composer.gotoScene( "game", {time = 1, effect = "crossFade"} )
+	
 end
 
 local function enterGame()
@@ -38,7 +42,7 @@ local function gotoRanking()
 end
 
 local function gotoSkins()
-	composer.gotoScene( "screens.skins", {time = 800, effect = "crossFade"} )
+	uiManager.changeSkin()
 end
 
 local function gotoHowTo()
@@ -53,6 +57,7 @@ local function loop()
 	score.text = gameData.persistent.highScore
 	background.parallax()
 	background.setVel(1)
+	uiManager.setVisible(popUps.creditsFlag)
 end
 
 
@@ -79,32 +84,11 @@ function scene:create( event )
 	sceneGroup:insert( uiGroup )
 
 	background.toBack()
+	uiManager.spawn(uiGroup)
 
 
 	-- Code here runs when the scene is first created but has not yet appeared on screen
-	local gearButton = display.newImageRect( uiGroup, "buttons/gear.png", 80, 80)
-	gearButton.x = xyManager.centreX(550)
-	gearButton.y = (xyManager.contentHeight-50)/4-80
-
-	local rankingButton = display.newImageRect( uiGroup, "buttons/trophy.png", 80, 80)
-	rankingButton.x = xyManager.centreX(550)
-	rankingButton.y = 2*(xyManager.contentHeight-50)/4-80
-
-	local skinsButton = display.newImageRect( uiGroup, "buttons/skins.png", 80, 80)
-	skinsButton.x = xyManager.centreX(550)
-	skinsButton.y = 3*(xyManager.contentHeight-50)/4-80
-
-	local howToButton = display.newImageRect( uiGroup, "buttons/howTo.png", 80, 80)
-	howToButton.x = xyManager.centreX(550)
-	howToButton.y = 4*(xyManager.contentHeight-50)/4-80
-
 	puntos = loadsave.loadTable("gameData.json", system.DocumentsDirectory)
-
-
-	play = display.newText(uiGroup, "PLAY", xyManager.centreX(0), xyManager.centreY(0), "Orientalismus.otf", 60)
-	play.x = xyManager.centreX(0)
-	play.y = xyManager.centreY(0)
-	play:setFillColor(.28,.08,.13)
 
 	local maxScore = display.newText(uiGroup, "MAX SCORE", xyManager.centreX(0), 30, "Orientalismus.otf", 20)
 	maxScore.x = xyManager.centreX(0)
@@ -114,11 +98,6 @@ function scene:create( event )
 	score.x = xyManager.centreX(0)
 	score:setFillColor(.28, .08, .13)
 
-	gearButton:addEventListener("tap", gotoSettings )
-	rankingButton:addEventListener("tap", gotoRanking )
-	skinsButton:addEventListener("tap", gotoSkins )
-	howToButton:addEventListener("tap", gotoHowTo )
-	play:addEventListener("tap", gotoGame )
 	Runtime:addEventListener("enterFrame", loop)
 
 

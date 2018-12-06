@@ -1,6 +1,6 @@
 
 local composer = require( "composer" )
-local xyManager = require( "xyManager" )
+local xyManager = require( "system.xyManager" )
 local loadsave = require("system.loadsave")
 local gameData = require("system.gameData")
 
@@ -8,7 +8,6 @@ local gameData = require("system.gameData")
 local hero = require("game.hero")
 local enemy = require("game.enemy")
 local patrones = require("game.patrones")
-local sword = require("game.sword")
 
 -- Background sheet
 local background = require("game.background")
@@ -38,9 +37,6 @@ local death = audio.loadSound( "music/deathMario.wav", {channel = 2, loops = 1} 
 local attack = audio.loadSound( "music/attack.wav" ,{channel = 2, loops = 1} )
 local step = audio.loadSound( "music/step.wav" ,{channel = 2, loops = 1} )
 
---Music
-local bngMusic = audio.loadStream( "music/Armadillo.wav", {channel = 2, loops = -1} )
-
 --Variables
 local jumpFlag = false
 local downFlag = true
@@ -64,7 +60,7 @@ end
 
 local function loop()
 	if(levelBool == false) then
-		patrones.frames(mainGroup, level)
+		--patrones.frames(mainGroup, level)
 		background.setVel(level)
 	end
 end
@@ -79,7 +75,7 @@ local function setScore()
 end
 
 local function endGame()
-	patrones.delete()
+	--patrones.delete()
 	hero.delete()
 	if (puntos.highScore < score) then
 		puntos.highScore = score
@@ -196,10 +192,10 @@ local function onKeyEvent( event )
 			jumpFlag = true
 		end
 		if "right" == name and jumpFlag == false and heroLive == true  then
-			patrones.spawn(mainGroup, 1)
+			--patrones.spawn(mainGroup, 1)
 		end
 		if "left" == name and jumpFlag == false and heroLive == true  then
-			patrones.spawn(mainGroup, 2)
+			--patrones.spawn(mainGroup, 2)
 		end
 		if "space" == name and swordFlag == false and heroLive == true  then
 			swordFlag = true
@@ -215,7 +211,7 @@ local function onKeyEvent( event )
 			composer.gotoScene("menu", {time = 800, effect = "crossFade"})
 		end
 	elseif phase == "up" and jumpFlag == false then
-		--hero.walk()
+		hero.walk()
 	end
 	lastEvent = event
  
@@ -263,6 +259,7 @@ end
 
 local function setpSound()
 	audio.play( step )
+end
 
 -- -----------------------------------------------------------------------------------
 -- Scene event functions
@@ -290,10 +287,7 @@ function scene:create( event )
 	hero.spawn(mainGroup)
 	hero.start()
 	hero.walk()
-	patrones.spawnFrame(mainGroup, level)
-
-	sword.spawn(mainGroup)
-	sword.remove()	
+	--patrones.spawnFrame(mainGroup, level)
 
 	background.toBack()
 	background.startVel(level)
@@ -318,7 +312,7 @@ function scene:create( event )
 	
 	scoreTimer = timer.performWithDelay( 1000, setScore, 0 )
 	timer.performWithDelay( 15000, levelUp, 0 )
-	setpSound = timer.performWithDelay(10, playStep, 0)
+	setpSound = timer.performWithDelay(1000, playStep, 0)
 end
 
 
@@ -348,7 +342,6 @@ function scene:hide( event )
 
 	elseif ( phase == "did" ) then
 		-- Code here runs immediately after the scene goes entirely off screen
-		sword.remove()
 		endGame()
 
 		composer.removeScene("game")

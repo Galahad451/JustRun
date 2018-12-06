@@ -30,4 +30,4 @@ background.spawn()
 background.start()
 background.startVel(1)
 
-composer.gotoScene( "game" )
+composer.gotoScene( "menu" )

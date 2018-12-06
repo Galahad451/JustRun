@@ -1,6 +1,6 @@
 
 local composer = require( "composer" )
-local xyManager = require( "xyManager" )
+local xyManager = require( "system.xyManager" )
 local hero = require("game.hero")
 local background = require("game.background")
 

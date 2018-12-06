@@ -1,17 +1,19 @@
 local enemy = {}
 
-local xyManager = require("xyManager")
+local xyManager = require("system.xyManager")
 
-local sheetInfo = require("Sprites.enemyData")
-local myImageSheet = graphics.newImageSheet( "Sprites/enemySheet.png", sheetInfo:getSheet() )
+local sheetInfo = require("sprites.enemyData")
+local myImageSheet = graphics.newImageSheet( "sprites/enemySheet.png", sheetInfo:getSheet() )
 
 local sequenceData = {
 	{name = "Red", frames = {1}},
 	{name = "Yellow", frames = {2}},
-	{name = "greenDragon", start = 3, count = 6, time = 400, loopCount = 0, loopDirection = "forward"},
-	{name = "redDragon", start = 9, count = 6, time = 300, loopCount = 0, loopDirection = "forward"},
-	{name = "santa", start = 9, count = 12, time = 400, loopCount = 0, loopDirection = "forward"},
-	{name = "monk", start = 21, count = 18, time = 400, loopCount = 0, loopDirection = "forward"}
+	{name = "fly", start = 3, count = 4, time = 400, loopCount = 0, loopDirection = "forward"},
+	{name = "greenDragon", start = 7, count = 6, time = 400, loopCount = 0, loopDirection = "forward"},
+	{name = "monk", start = 13, count = 18, time = 400, loopCount = 0, loopDirection = "forward"},
+	{name = "officer", start = 31, count = 5, time = 400, loopCount = 0, loopDirection = "forward"},
+	{name = "redDragon", start = 36, count = 6, time = 300, loopCount = 0, loopDirection = "forward"},
+	{name = "santa", start = 42, count = 12, time = 400, loopCount = 0, loopDirection = "forward"}
 }
 
 local enemyCollisionFilter = {categoryBits=2, maskBits=5}
@@ -47,7 +49,7 @@ local function createEnemy(group, posX, numero, velLevel)
 		newEnemy.isSensor = true
 	elseif numero == 3 then
 		local newEnemy = display.newSprite(group, myImageSheet, sequenceData)
-		newEnemy:setSequence("greenDragon")
+		newEnemy:setSequence("fly")
 		table.insert( enemy, newEnemy )
 		newEnemy.x = display.contentWidth + (1200/10)*posX
 		newEnemy.y = 220

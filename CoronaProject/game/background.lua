@@ -1,107 +1,245 @@
 local background = {}
 
-local xyManager = require("xyManager")
+local xyManager = require("system.xyManager")
 local physics = require("physics")
+local gameData = require("system.gameData")
+local loadsave = require("system.loadsave")
 
-local sheetInfo = require("Sprites.backgroundData")
-local myImageSheet = graphics.newImageSheet( "Sprites/backgroundSheet.png", sheetInfo:getSheet() )
+local sheetFarData = require("game.farData")
+local sheetFar = graphics.newImageSheet( "game/farSheet.png", sheetFarData:getSheet() )
 
+local sheetFrontData = require("game.frontData")
+local sheetFront = graphics.newImageSheet( "game/frontSheet.png", sheetFrontData:getSheet() )
+
+local sheetGroundData = require("game.groundData")
+local sheetGround = graphics.newImageSheet( "game/groundSheet.png", sheetGroundData:getSheet() )
+
+local sheetBackData = require("game.backData")
+local sheetBack = graphics.newImageSheet( "game/backSheet.png", sheetBackData:getSheet() )
+
+local sheetSkyData = require("game.skyData")
+local sheetSky = graphics.newImageSheet( "game/skySheet.png", sheetSkyData:getSheet() )
 
 local sequenceData = {
-	{name = "cloudClose", frames = {1}},
-	{name = "cloudFar", frames = {2}},
-	{name = "cloudMiddle", frames = {3}},
-	{name = "gnd", frames = {4}},
-	{name = "mountains", frames = {5}},
-	{name = "sky", frames = {6}}
+	{ name = "sky", sheet = sheetSky, frames = { 1 , 2 , 3 , 4 }},
+	{ name = "far", sheet = sheetFar, frames = { 1 , 2 , 3 , 4 }},
+	{ name = "front", sheet = sheetFront, frames = { 1 , 2 , 3 , 4 , 5}},
+	{ name = "ground", sheet = sheetGround, frames = { 1 , 2, 3, 4 }},
+	{ name = "back", sheet = sheetBack, frames = { 1 , 2, 3, 4, 5 }}
 }
 
-local sky = display.newSprite( myImageSheet, sequenceData )
-local mountains = display.newSprite( myImageSheet, sequenceData )
-local cloudFar = display.newSprite( myImageSheet, sequenceData )
-local cloudMiddle = display.newSprite( myImageSheet, sequenceData )
-local cloudClose = display.newSprite( myImageSheet, sequenceData )
-local floor = display.newSprite( myImageSheet, sequenceData )
-local gnd = display.newSprite( myImageSheet, sequenceData )
-local gnd2 = display.newSprite( myImageSheet, sequenceData )
-
-local gndFlag = false
+local sky = display.newSprite( sheetSky, sequenceData )
+local far = display.newSprite( sheetFar, sequenceData )
+local far2 = display.newSprite( sheetFar, sequenceData )
+local back = display.newSprite( sheetBack, sequenceData )
+local back2 = display.newSprite( sheetBack, sequenceData )
+local front = display.newSprite( sheetFront, sequenceData )
+local front2 = display.newSprite( sheetFront, sequenceData )
+local ground = display.newSprite( sheetGround, sequenceData )
+local ground2 = display.newSprite( sheetGround, sequenceData )
+local floor = display.newSprite( sheetGround, sequenceData )
 
 --Collision
 local bngCollisionFilter = { categoryBits=8, maskBits=16 }
 local floorCollisionFilter = {categoryBits=4, maskBits=3}
+
+local function setPosition()
+	if gameData.persistent.skin == 1 then
+		far.x = xyManager.centreX(0)
+		far.y = xyManager.centreY(0)
+		far2.x = xyManager.centreX(far.x + far.width/2)
+		far2.y = xyManager.centreY(0)
+		front.x = xyManager.centreX(0)
+		front.y = xyManager.centreY(0)
+		front2.x = xyManager.centreX(front.x+front.width/2)
+		front2.y = xyManager.centreY(0)
+		back.x = xyManager.centreX(0)
+		back.y = xyManager.centreY(0)
+		back2.x = xyManager.centreX(back.x + back.width/2)
+		back2.y = xyManager.centreY(0)
+		ground.x = xyManager.centreX(0)
+		ground2.x = xyManager.centreX(ground.x + ground.width/2)
+	elseif gameData.persistent.skin == 2 then
+		far.y = xyManager.centreY(200)
+		far2.y = xyManager.centreY(250)
+		front.x = xyManager.centreX(0)
+		front.y = xyManager.centreY(0)
+		front2.x = xyManager.centreX(front2.width+display.contentWidth/2)
+		front2.y = xyManager.centreY(-200)
+		back.x = xyManager.centreX(0)
+		back.y = xyManager.centreY(300)
+		back2.x = xyManager.centreX(20)
+		back2.y = xyManager.centreY(300)
+		ground.x = xyManager.centreX(0)
+		ground2.x = xyManager.centreX(ground.x + ground.width/2)
+	elseif gameData.persistent.skin == 3 then
+		far.x = xyManager.centreX(0)
+		far2.x = xyManager.centreX(far2.width)
+		far.y = xyManager.centreY(20)
+		far2.y = xyManager.centreY(20)
+		front.x = xyManager.centreX(0)
+		front.y = xyManager.centreY(0)
+		front2.x = xyManager.centreX(display.contentWidth/2)
+		front2.y = xyManager.centreY(-100)
+		back.x = xyManager.centreX(0)
+		back.y = xyManager.centreY(0)
+		back2.x = xyManager.centreX(display.contentWidth/2)
+		back2.y = xyManager.centreY(20)
+		ground.x = xyManager.centreX(0)
+		ground2.x = xyManager.centreX(ground.x + ground.width/2)
+	elseif gameData.persistent.skin == 4 then
+		far.x = xyManager.centreX(0)
+		far2.x = far.x + far.width
+		far.y = xyManager.centreY(0)
+		far2.y = xyManager.centreY(0)
+		front.x = xyManager.centreX(0)
+		front.y = xyManager.centreY(355)
+		front2.x = xyManager.centreX(display.contentWidth+200)
+		front2.y = xyManager.centreY(355)
+		back.x = xyManager.centreX(-100)
+		back.y = xyManager.centreY(150)
+		back2.x = xyManager.centreX(display.contentWidth/2+200)
+		back2.y = xyManager.centreY(150)
+		ground.x = xyManager.centreX(0)
+		ground.y = xyManager.centreY(440)
+		ground2.x = xyManager.centreX(ground.x + ground.width/2)
+		ground2.y = xyManager.centreY(440)
+		floor.y = xyManager.centreY(460)
+	end
+
+end
+
+local function setVel(level)
+	local velLevel = level*0.2 + 1
+	far:setLinearVelocity( -10*velLevel, 0 )
+	far2:setLinearVelocity( -10*velLevel, 0 )
+	front:setLinearVelocity( -500*velLevel, 0 )
+	front2:setLinearVelocity( -500*velLevel, 0 )
+	back:setLinearVelocity( -35*velLevel, 0 )
+	back2:setLinearVelocity( -35*velLevel, 0 )
+	ground:setLinearVelocity( -500*velLevel, 0 )
+	ground2:setLinearVelocity( -500*velLevel, 0 )
+end
+
+local function changeSkin()
+	sky:setFrame( gameData.persistent.skin )
+	back:setFrame( gameData.persistent.skin )
+	back2:setFrame( gameData.persistent.skin )
+	if (gameData.persistent.skin == 4) then
+		front:setFrame( math.random( 4, 5 ) )
+	else
+		front:setFrame( gameData.persistent.skin )
+		front2:setFrame( gameData.persistent.skin )
+	end
+	far:setFrame( gameData.persistent.skin )
+	far2:setFrame( gameData.persistent.skin )
+	ground:setFrame( gameData.persistent.skin )
+	ground2:setFrame( gameData.persistent.skin )
+	floor:setFrame( gameData.persistent.skin )
+	setPosition()
+end
 
 local function spawn()
 
 	sky:setSequence( "sky" )
 	sky.x = xyManager.centreX(0)
 	sky.y = xyManager.centreY(0)
+	sky:setFrame( gameData.persistent.skin )
 	sky.myName = "sky"
 	table.insert(background, sky)
 
-	mountains:setSequence( "mountains" )
-	mountains.x = xyManager.centreX(200)
-	mountains.y = xyManager.centreY(300)
-	mountains.myName = "mountains"
-	table.insert(background, mountains)
+	far:setSequence( "far" )
+	far.x = xyManager.centreX(200)
+	far.y = xyManager.centreY(300)
+	far:setFrame( gameData.persistent.skin )
+	far.myName = "far"
+	table.insert(background, far)
 
-	cloudFar:setSequence( "cloudFar" )
-	cloudFar.x = xyManager.centreX(400)
-	cloudFar.y = xyManager.centreY(50)
-	cloudFar.myName = "cloudFar"
-	table.insert(background, cloudFar)
+	far2:setSequence( "far" )
+	far2.x = xyManager.centreX(far.x + far.width/2)
+	far2.y = xyManager.centreY(300)
+	far2:setFrame( gameData.persistent.skin )
+	far2.myName = "far2"
+	table.insert(background, far2)
+	back:setFrame( gameData.persistent.skin )
 
-	cloudMiddle:setSequence( "cloudMiddle" )
-	cloudMiddle.x = xyManager.centreX(-100)
-	cloudMiddle.y = xyManager.centreY(100)
-	cloudMiddle.myName = "cloudMiddle"
-	table.insert(background, cloudMiddle)
 
-	cloudClose:setSequence( "cloudClose" )
-	cloudClose.x = xyManager.centreX(-400)
-	cloudClose.y = xyManager.centreY(0)
-	cloudClose.myName = "cloudClose"
-	table.insert(background, cloudClose)
+	back:setSequence( "back" )
+	back.x = xyManager.centreX(400)
+	back.y = xyManager.centreY(50)
+	back:setFrame( gameData.persistent.skin )
+	back.myName = "back"
+	table.insert(background, back)
 
-	floor:setSequence( "gnd" )
+	back2:setSequence( "back" )
+	back2.x = xyManager.centreX(400)
+	back2.y = xyManager.centreY(50)
+	back2:setFrame( gameData.persistent.skin )
+	back2.myName = "back2"
+	table.insert(background, back2)
+	back2:setFrame( gameData.persistent.skin )	
+
+	front:setSequence( "front" )
+	front.x = xyManager.centreX(-100)
+	front.y = xyManager.centreY(100)
+	front:setFrame( gameData.persistent.skin )
+	front.myName = "front"
+	table.insert(background, front)
+
+	front2:setSequence( "front" )
+	front2.x = xyManager.centreX(-100)
+	front2.y = xyManager.centreY(100)
+	front2:setFrame( gameData.persistent.skin )
+	front2.myName = "front2"
+	table.insert(background, front2)
+	transition.to(front2, {xScale = -1, time = 0})
+
+	floor:setSequence( "ground" )
 	floor.x = xyManager.centreX(0)
 	floor.y = xyManager.centreY(445)
+	floor:setFrame( gameData.persistent.skin )
 	floor.myName = "floor"
 	table.insert(background, floor)
 
-	gnd:setSequence( "gnd" )
-	gnd.x = xyManager.centreX(0)
-	gnd.y = xyManager.centreY(420)
-	gnd.myName = "gnd"
-	table.insert(background, gnd)
+	ground:setSequence( "ground" )
+	ground.x = xyManager.centreX(0)
+	ground.y = xyManager.centreY(400)
+	ground:setFrame( gameData.persistent.skin )
+	ground.myName = "ground"
+	table.insert(background, ground)
 
-	gnd2:setSequence( "gnd" )
-	gnd2.x = xyManager.centreX(9000)
-	gnd2.y = xyManager.centreY(420)
-	gnd2.myName = "gnd2"
-	table.insert(background, gnd2)
-	
+	ground2:setSequence( "ground" )
+	ground2.x = xyManager.centreX(ground2.width)
+	ground2.y = xyManager.centreY(400)
+	ground2:setFrame( gameData.persistent.skin )
+	ground2.myName = "ground2"
+	table.insert(background, ground2)
+	changeSkin()
 end
 
 local function start()
 	--Adding physics
-	physics.addBody( gnd, "dynamic", {filter = bngCollisionFilter} )
-	physics.addBody( gnd2, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( ground, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( ground2, "dynamic", {filter = bngCollisionFilter} )
 	physics.addBody( floor, "static", {filter = floorCollisionFilter} )
-	physics.addBody( cloudClose, "dynamic", {filter = bngCollisionFilter})
-	physics.addBody( cloudMiddle, "dynamic", {filter = bngCollisionFilter} )
-	physics.addBody( cloudFar, "dynamic", {filter = bngCollisionFilter} )
-	physics.addBody( mountains, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( front, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( front2, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( back, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( back2, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( far, "dynamic", {filter = bngCollisionFilter} )
+	physics.addBody( far2, "dynamic", {filter = bngCollisionFilter} )
 
 
 	--Removing Gravity and setting velocity
-	gnd.gravityScale = 0
-	gnd2.gravityScale = 0
+	ground.gravityScale = 0
+	ground2.gravityScale = 0
 	floor.gravityScale = 0
-	cloudClose.gravityScale = 0
-	cloudMiddle.gravityScale = 0
-	cloudFar.gravityScale = 0
-	mountains.gravityScale = 0
+	front.gravityScale = 0
+	front2.gravityScale = 0
+	back.gravityScale = 0
+	back2.gravityScale = 0
+	far.gravityScale = 0
+	far2.gravityScale = 0
 
 	
 end
@@ -116,63 +254,82 @@ end
 
 local function startVel(level)
 	local velLevel = level*0.2 + 1
-	mountains:setLinearVelocity( -10*velLevel, 0 )
-	cloudClose:setLinearVelocity( -100*velLevel, 0 )
-	cloudMiddle:setLinearVelocity( -30*velLevel, 0 )
-	cloudFar:setLinearVelocity( -15*velLevel, 0 )
-	gnd:setLinearVelocity( -500*velLevel, 0 )
-	gnd2:setLinearVelocity( -500*velLevel, 0 )
-end
-
-local function setVel(level)
-	local velLevel = level*0.2 + 1
-	mountains:setLinearVelocity( -10*velLevel, 0 )
-	cloudClose:setLinearVelocity( -100*velLevel, 0 )
-	cloudMiddle:setLinearVelocity( -30*velLevel, 0 )
-	cloudFar:setLinearVelocity( -15*velLevel, 0 )
-	gnd:setLinearVelocity( -500*velLevel, 0 )
-	gnd2:setLinearVelocity( -500*velLevel, 0 )
+	far:setLinearVelocity( -10*velLevel, 0 )
+	far2:setLinearVelocity( -10*velLevel, 0 )
+	front:setLinearVelocity( -300*velLevel, 0 )
+	front2:setLinearVelocity( -300*velLevel, 0 )
+	back:setLinearVelocity( -15*velLevel, 0 )
+	back2:setLinearVelocity( -15*velLevel, 0 )
+	ground:setLinearVelocity( -500*velLevel, 0 )
+	ground2:setLinearVelocity( -500*velLevel, 0 )
 end
 
 local function pauseVel()
-	mountains:setLinearVelocity( 0, 0 )
-	cloudClose:setLinearVelocity( 0, 0 )
-	cloudMiddle:setLinearVelocity( 0, 0 )
-	cloudFar:setLinearVelocity( 0, 0 )
-	gnd:setLinearVelocity( 0, 0 )
-	gnd2:setLinearVelocity( 0, 0 )
+	far:setLinearVelocity( 0, 0 )
+	far2:setLinearVelocity( 0, 0 )
+	front:setLinearVelocity( 0, 0 )
+	front2:setLinearVelocity( 0, 0 )
+	back:setLinearVelocity( 0, 0 )
+	back2:setLinearVelocity( 0, 0 )
+	ground:setLinearVelocity( 0, 0 )
+	ground2:setLinearVelocity( 0, 0 )
 end
 
 local function parallax()
-	if mountains.x < - mountains.width/2 then
-		mountains.x = display.contentWidth + mountains.width/2
+	if (far.x + far.width/2 <= 0) then
+		far.x = far2.x + far2.width
 	end
-	if gnd.x + gnd.width/2 < display.contentWidth + 50 and gndFlag == false then
-		gnd2.x = gnd.x + gnd.width
-		gndFlag = true
+	if (far2.x + far2.width/2 <= 0) then
+		far2.x = far.x + far.width
 	end
-	if gnd2.x + gnd2.width/2 < display.contentWidth + 50 and gndFlag == true then
-		gnd.x = gnd2.x + gnd2.width
-		gndFlag = false
+
+	if front.x + front.width/2 < 0 then
+		front.x = display.contentWidth + front.width/2
+		if (gameData.persistent.skin == 4) then
+			front:setFrame( math.random( 4, 5 ) )
+			front.x = math.random( display.contentWidth + front.width/2, display.contentWidth + front.width/2 + 2000 )
+		end
 	end
-	if cloudClose.x < - cloudClose.width/2 then
-		cloudClose.x = display.contentWidth + cloudClose.width/2
+	if front2.x + front2.width/2 < 0 then
+		front2.x = display.contentWidth + front2.width/2
+		if (gameData.persistent.skin == 4) then
+			front2:setFrame( math.random( 4, 5 ) )
+			front2.x = math.random( display.contentWidth + front.width/2, display.contentWidth + front.width/2 + 500 )
+		end
 	end
-	if cloudMiddle.x < - cloudMiddle.width/2 then
-		cloudMiddle.x = display.contentWidth + cloudMiddle.width/2
+
+	if ground.x + ground.width/2 < 0 then
+		ground.x = display.contentWidth + ground.width/2
 	end
-	if cloudFar.x < - cloudFar.width/2 then
-		cloudFar.x = display.contentWidth + cloudFar.width/2
+	if ground2.x + ground2.width/2 < 0 then
+		ground2.x = display.contentWidth + ground2.width/2
+	end
+
+	if back.x + back.width/2 < 0 then
+		back.x = display.contentWidth + back.width/2
+		if (gameData.persistent.skin == 4) then
+			back:setFrame( math.random( 4, 5 ) )
+			back.x = math.random( display.contentWidth + back.width/2, display.contentWidth + back.width/2 + 2000 )
+		end
+	end
+	if back2.x + back2.width/2 < 0 then
+		back2.x = display.contentWidth + back2.width/2
+		if (gameData.persistent.skin == 4) then
+			back2:setFrame( math.random( 4, 5 ) )
+			back2.x = math.random( display.contentWidth + back.width/2, display.contentWidth + back.width/2 + 500 )
+		end
 	end
 end
 
 local function toBack()
-	gnd2:toBack()
-	gnd:toBack()
-	cloudClose:toBack()
-	cloudMiddle:toBack()
-	mountains:toBack()
-	cloudFar:toBack()
+	ground2:toBack()
+	ground:toBack()
+	front:toBack()
+	front2:toBack()
+	back:toBack()
+	back2:toBack()
+	far:toBack()
+	far2:toBack()
 	sky:toBack()
 	floor:toBack()
 end
@@ -187,6 +344,7 @@ background.pauseVel = pauseVel
 background.delete = delete
 background.toBack = toBack
 background.setVel = setVel
+background.changeSkin = changeSkin
 
 
 return background

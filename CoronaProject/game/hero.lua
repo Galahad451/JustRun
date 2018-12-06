@@ -1,65 +1,57 @@
 local hero = { }
 
 
-local xyManager = require("xyManager")
+local xyManager = require("system.xyManager")
+local gameData = require("system.gameData")
 
-local sheetInfo = require("Sprites.ninjaData")
-local myImageSheet = graphics.newImageSheet( "Sprites/ninjaSheet.png", sheetInfo:getSheet() )
+local sheetInfo = require("sprites.ninjaData")
+local myImageSheet = graphics.newImageSheet( "sprites/ninjaSheet.png", sheetInfo:getSheet() )
 local physics = require("physics")
 
-local swordSheetInfo = require("Sprites.swordData")
-local mySwordSheet = graphics.newImageSheet( "Sprites/swordSheet.png", sheetInfo:getSheet() )
-
-
 local heroCollisionFilter = {categoryBits=1, maskBits=6}
---local heroCollisionFilter = {categoryBits=8, maskBits=16}
+-- local heroCollisionFilter = {categoryBits=8, maskBits=16}
 
 local sprite
-local swordSprite
+local runSequence = "princessRun"
+local jumpSequence = "princessJump"
+local fallSequence = "princessFall"
+local runAttackSequence = "princessRunAtk"
+local jumpAttackSequence = "princessJumpAtk"
+local dieSequence = "princessDie"
 
 local sequenceData = {
-	{	name = "walk", start = 2, count = 4, time = 800, loopCount = 0, loopDirection = "forward"},
-	{	name = "idle", frames = { 1 }},
-	{	name = "jump", frames = { 6 }},
-	{	name = "down", frames = { 7 }},
-	{	name = "princessRun", start = 35, count = 18, time = 400, loopCount = 0, loopDirection = "forward"},
-	{	name = "princessJump", start = 29, count = 6, time = 400, loopCount = 0, loopDirection = "forward"},
-	{	name = "princessFall", start = 23, count = 6, time = 400, loopCount = 0, loopDirection = "forward"}, 
-	{	name = "princessDie", start = 8, count = 15, time = 400, loopCount = 1, loopDirection = "forward"},
-	{	name = "princessRunAtk", start = 53, count = 18, time = 400, loopCount = 0, loopDirection = "forward"},
-	{	name = "princessJumpAtk", start = 83, count = 15, time = 400, loopCount = 0, loopDirection = "forward"},
-	{	name = "ninjaRun", start = 26, count = 12, time = 400, loopCount = 0, loopDirection = "forward"}
-}
-
-local swordSequenceData = {
-	{ name = "atk", frames = {1}}
+	{	name = "knightWalk", start = 14, count = 4, time = 800, loopCount = 0, loopDirection = "forward"},
+	{	name = "knightIdle", frames = { 12 }},
+	{	name = "knightJump", frames = { 13 }},
+	{	name = "knightDown", frames = { 11 }},
+	{	name = "princessRun", start = 77, count = 18, time = 400, loopCount = 0, loopDirection = "forward"},
+	{	name = "princessJump", start = 56, count = 6, time = 400, loopCount = 0, loopDirection = "forward"},
+	{	name = "princessFall", start = 50, count = 6, time = 400, loopCount = 0, loopDirection = "forward"}, 
+	{	name = "princessDie", start = 35, count = 15, time = 400, loopCount = 1, loopDirection = "forward"},
+	{	name = "princessRunAtk", start = 95, count = 18, time = 400, loopCount = 0, loopDirection = "forward"},
+	{	name = "princessJumpAtk", start = 62, count = 15, time = 400, loopCount = 0, loopDirection = "forward"},
+	{	name = "ninjaRun", start = 18, count = 12, time = 400, loopCount = 0, loopDirection = "forward"}
 }
 
 local yMin
-
-local function spawn(group)
-	sprite = display.newSprite( group, myImageSheet, sequenceData )
-	table.insert(hero, sprite)
-	sprite.x = xyManager.leftEdge(sprite, 50)
-	sprite.y = xyManager.centreY(320)
-	yMin = sprite.y
-	sprite.myName = "hero"
-	print(table.maxn(hero))
-end
 
 local collision = true
 
 local vx, vy
 
-local function parallax()
-	background.spawn()
+local function setPos()
+	local skin = gameData.persistent.skin
+	if skin == 2 then
+		print("Posicion")
+		sprite.y = xyManager.centreY(320)
+	else
+		sprite.y = xyManager.centreY(320)
+	end
 end
-
-
 
 local function down()
 	if sprite.sequence == "princessJump" then
-		sprite:setSequence("princessFall")
+		sprite:setSequence(fallSequence)
 	end
 	sprite:play()
 	transition.cancel("heroCancel")
@@ -70,7 +62,7 @@ local function jump()
 	transition.to( sprite, {time = 600, transition = easing.outExpo, onComplete=down, x = sprite.x, y = 201, tag="heroMove"} )
 end
 local function walk()
-	sprite:setSequence( "princessRun" )
+	sprite:setSequence( runSequence )
 	sprite:play()
 end
 local function idle()
@@ -78,17 +70,16 @@ local function idle()
 end
 local function atk(seq)
 	if seq == 1 then
-		sprite:setSequence( "princessRunAtk" )
+		sprite:setSequence( runAttackSequence )
 	else
-		sprite:setSequence(	"princessJumpAtk" )
+		sprite:setSequence(	jumpAttackSequence )
 	end
 	sprite:play()
 end
+
 local function start()
 	physics.addBody( sprite, {density=1.0, filter = heroCollisionFilter} )
 	sprite.collision = onLocalCollision
-	--sprite:setLinearVelocity( 0, 5000 )
-	--sprite.gravityScale = 1
 	sprite.gravityScale = 0
 end
 
@@ -99,21 +90,15 @@ local function delete()
 end
 
 local function die()
-	sprite:setSequence("princessDie")
+	sprite:setSequence(dieSequence)
 	sprite:play()
 	transition.to( sprite, {rotation=-900, time=500, transition=easing.linear, y = sprite.y - 100})
 	transition.to( sprite, {rotation=-900, time=500, delay=500, transition=easing.inExpo, y = display.contentHeight + 200})
 end
 
-
-local function vel()
-	
-end
-
 local function cancelJump()
 	transition.cancel( "heroMove" )
 	transition.to(sprite, {time = 100, transition = linear, x = sprite.x, y = xyManager.centreY(325), tag = "heroCancel"})
-	--sprite:setLinearVelocity( 0, 5000 )
 end
 
 local function getY()
@@ -122,21 +107,47 @@ end
 
 local function setSeq(number)
 	if number == 1 then
-		sprite:setSequence("princessRun")
+		sprite:setSequence(runSequence)
 	elseif number == 2 then
-		sprite:setSequence("princessJump")
+		sprite:setSequence(jumpSequence)
 	elseif number == 3 then
-		sprite:setSequence("princessRunAtk")
+		sprite:setSequence(runAttackSequence)
 	elseif number == 4 then
-		sprite:setSequence("princessJumpAtk")
+		sprite:setSequence(jumpAttackSequence)
 	elseif number == 5 then
-		sprite:setSequence("princessFall")
+		sprite:setSequence(fallSequence)
 	end
 	sprite:play()
 end
 
 local function getSeq()
 	return sprite.sequence
+end
+
+local function changeSkin()
+	local skin = gameData.persistent.skin 
+	if skin == 2 then
+		runSequence = "knightWalk"
+		jumpSequence = "knightJump"
+		fallSequence = "knightDown"
+	else
+		runSequence = "princessRun"
+		jumpSequence = "princessJump"
+		fallSequence = "princessFall"
+	end
+	walk()
+end
+
+local function spawn(group)
+	sprite = display.newSprite( group, myImageSheet, sequenceData )
+	table.insert(hero, sprite)
+	sprite.x = xyManager.leftEdge(sprite, 50)
+	sprite.y = xyManager.centreY(320)
+	yMin = sprite.y
+	sprite.myName = "hero"
+	print(table.maxn(hero))
+	changeSkin()
+	setPos()
 end
 
 hero.cancelJump = cancelJump
@@ -152,5 +163,6 @@ hero.delete = delete
 hero.die = die
 hero.setSeq = setSeq
 hero.getSeq = getSeq
+hero.changeSkin = changeSkin
 
 return hero
