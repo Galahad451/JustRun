@@ -1,0 +1,161 @@
+local patrones = {}
+
+local xyManager = require("system.xyManager")
+local enemy = require("characters.enemies.enemy")
+local physics = require("physics")
+local pattern = require("characters.enemies.pattern")
+local gameData = require("system.gameData")
+
+local enemies = {}
+
+local frames = {}
+
+local bngCollisionFilter = { categoryBits=8, maskBits=16 }
+
+local random = 1
+local randomLevel = 1
+
+local function createPattern(group, enemies, velLevel)
+	for i=1,table.maxn(enemies) do
+		if(enemies[i] == 1) then
+			enemy.create(group, i, 1, velLevel)
+		elseif (enemies[i] == 2) then
+			enemy.create(group, i, 2, velLevel)
+		elseif(enemies[i] == 3) then
+			enemy.create(group, i, 3, velLevel)
+		elseif(enemies[i] == 4) then
+			enemy.create(group, i, 4, velLevel)
+		elseif(enemies[i] == 5) then
+			enemy.create(group, i, 5, velLevel)
+		end
+	end
+end
+
+local function spawn(group, velLevel, level)
+	local lev = level
+	if lev >= table.maxn( pattern ) then
+		lev = table.maxn( pattern )
+	end
+	if (gameData.persistent.tutorial == 4) then
+		randomLevel = math.random( 2, lev )
+		random = math.random(1, table.maxn(pattern[randomLevel]))
+	else
+		randomLevel = 1
+		random = 1
+	end
+	enemies = pattern[randomLevel][random]
+	createPattern(group, enemies, velLevel)
+	for i = #enemy, 1, -1 do
+        local thisEnemy = enemy[i]
+ 
+        if ( thisEnemy.x < -50 or
+             thisEnemy.y < -50 or
+             thisEnemy.y > display.contentHeight + 50 )
+        then
+            display.remove( thisEnemy )
+
+            table.remove( enemy, i )
+        end
+    end
+
+end
+
+local function changeSkin()
+	local skin = gameData.persistent.skin
+	for i = #enemy, 1, -1 do
+		local thisEnemy = enemy[i]
+		if skin == 1 then
+			if thisEnemy.myName == "greenDragon" then
+				thisEnemy:setSequence( "fly" )
+			elseif thisEnemy.myName == "enemyRed" then
+				thisEnemy:setSequence( "barrel" )
+			end
+		elseif skin == 2 then
+			if thisEnemy.myName == "enemyRed" then
+				thisEnemy:setSequence( "Red" )
+				transition.to(thisEnemy, {xScale = 1, time = 0})
+				thisEnemy.y = xyManager.centreY(320)
+			elseif thisEnemy.myName == "greenDragon" then
+				thisEnemy:setSequence( "greenDragon" )
+			end
+		elseif skin == 3 then
+			if thisEnemy.myName == "enemyRed" then
+				thisEnemy:setSequence( "officer" )
+				transition.to(thisEnemy, {xScale = 1, time = 0})
+				thisEnemy.y = xyManager.centreY(320)
+			elseif thisEnemy.myName == "greenDragon" then
+				thisEnemy:setSequence( "greenDragon" )
+			end
+		elseif skin == 4 then
+			if thisEnemy.myName == "greenDragon" then
+				thisEnemy:setSequence( "greenDragon" )
+			elseif thisEnemy.myName == "enemyRed" then
+				thisEnemy:setSequence( "barrel" )
+				thisEnemy.y = xyManager.centreY(335)
+			elseif thisEnemy.myName == "enemyYellow" then
+				thisEnemy.y = xyManager.centreY(350)
+			end
+		end
+		thisEnemy:play()
+	end
+end
+
+local function spawnFrame(group, level, velocity)
+	local velLevel = velocity
+	local newFrame = display.newRect(0, 0, 1200, display.contentHeight )
+	table.insert(frames, newFrame)
+	newFrame.x = display.contentWidth + newFrame.width/2
+	newFrame.y = xyManager.centreY(0)
+	newFrame.myName = "frame"
+	newFrame:setFillColor(0,0,0,0)
+	physics.addBody( newFrame, "dynamic", {filter = bngCollisionFilter} )
+	newFrame:setLinearVelocity( -500*velLevel, 0 )
+	newFrame.gravityScale = 0
+	spawn(group, velLevel, level)
+	changeSkin()
+end
+
+local function pause(velocity)
+	for i = #frames, 1, -1 do
+		local thisFrame = frames[i]
+		thisFrame:setLinearVelocity( -500*velocity, 0 )
+	end
+end
+
+local function delete()
+	for i = #frames, 1, -1 do
+		local thisFrame = frames[i]
+		display.remove( thisFrame )
+		table.remove( frames, i )
+	end
+	for i = #enemy, 1, -1 do
+		local thisEnemy = enemy[i]
+		display.remove( thisEnemy )
+		table.remove( enemy, i )
+	end
+end
+
+local function frameFunction(group, level, velocity)
+	for i = #frames, 1, -1 do
+		local thisFrame = frames[i]
+		if(thisFrame.x + thisFrame.width/2 <= display.contentWidth - 100) then
+			spawnFrame(group, level, velocity)
+			display.remove ( thisFrame )
+			table.remove( frames, i )
+		end
+	end
+	for i=#enemy,1, -1 do
+		local thisEnemy = enemy[i]
+		thisEnemy:setLinearVelocity( -500*velocity, 0 )
+	end
+end
+
+patrones.frames = frameFunction
+patrones.spawn = spawn
+patrones.getX = getX
+patrones.spawnFrame = spawnFrame
+patrones.delete = delete
+patrones.changeSkin = changeSkin
+patrones.pause = pause
+
+return patrones
